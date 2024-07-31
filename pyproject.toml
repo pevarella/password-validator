@@ -8,6 +8,17 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "3.12.*"
 fastapi = "^0.111.1"
+pydantic-settings = "^2.3.4"
+pwdlib = {extras = ["argon2"], version = "^0.2.0"}
+python-multipart = "^0.0.9"
+sqlalchemy = "^2.0.31"
+authlib = "^1.3.1"
+pytest-mock = "^3.14.0"
+jwt = "^1.3.1"
+python-jose = "^3.3.0"
+pyjwt = "^2.8.0"
+alembic = "^1.13.2"
+uvicorn = "^0.30.3"
 
 [tool.poetry.group.dev.dependencies]
 ruff = "^0.5.4"
@@ -20,9 +31,9 @@ pythonpath = "."
 addopts = '-p no:warnings'
 
 [tool.taskipy.tasks]
-run = 'fastapi dev password_validator/app.py'
+run = 'fastapi dev src/app.py'
 pre_test = 'task lint'
-test = 'pytest -s -x --cov=password_validator -vv'
+test = 'pytest -s -x --cov=src -vv'
 post_test = 'coverage html'
 lint = 'ruff check . && ruff check . --diff'
 format = 'ruff check . --fix && ruff format' 
