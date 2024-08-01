@@ -25,9 +25,9 @@ IsValid("aa") // false
 IsValid("ab") // false  
 IsValid("AAAbbbCc") // false  
 IsValid("AbTp9!foo") // false  
-IsValid("AbTp9!foA") // false
-IsValid("AbTp9 fok") // false
-IsValid("") // true
+IsValid("AbTp9!foA") // false  
+IsValid("AbTp9 fok") // false  
+IsValid("AbTp9!fok") // true
 
 Nota: Espaços em branco não devem ser considerados como caracteres válidos.
 
@@ -60,7 +60,11 @@ uvicorn password_validator.app:app --reload
 
 ```
 
-A API Swagger será exposta em http://localhost:8000/docs
+A API Swagger será exposta em http://localhost:8000/docs 
+
+![clientcredentials](https://github.com/user-attachments/assets/fe22b517-7034-4733-b3eb-feb14e4098ec)
+
+![validatesenha2](https://github.com/user-attachments/assets/1093593c-9995-486f-b74a-751c5d7de203)
 
 Autenticação 
 
@@ -78,7 +82,11 @@ Validar Senha
 
 ```cmd
 # comando para enviar uma senha para ser validada
-curl -X POST -H "Content-Type: application/json" -d "{\"password\": \"SenhaAqui\"}" http://localhost:8000/validador-senhas
+curl -X POST "http://127.0.0.1:8000/validador-senhas" ^
+     -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." ^
+     -H "Content-Type: application/json" ^
+     -d "{\"password\": \"senha\"}"
+
 
 ```
 ## Testes
@@ -99,12 +107,14 @@ coverage html
 ## Solução
 
 Organizei a API em uma estrutura de pastas 'core', 'routers', 'schemas' e 'services' onde:
-- core: contém utilitários de configuração e segurança. No exemplo desse projeto essa pasta ficou "ociosa" para futuras melhores de arquitetura e segurança que não foram possíveis de implamentar no momento.
+- core: contém utilitários de configuração e segurança.
 - routers: contém as definições das rotas da API.
 - schemas: contém os modelos de dados usados para validar entrada e saída.
 - services: contém a lógica de negócio.
 
 ### Lógica de Validação 
+
+![validationservice](https://github.com/user-attachments/assets/6dba996d-974a-4981-a4ff-2ec74dd9d9e8)
 
 Para validação dos critérios de senha defini uma função que recebe a senha e retorna a True ou False. Ela inicializa a variável is_valid como True e faz um checagem por critério, retornando falso se for atendida a condição:
 
@@ -119,6 +129,22 @@ Para esses casos utilizei a função re.search() para identificar os respectivos
 Converti a string em um conjunto já que conjuntos não podem ter caracteres duplicados e comparei com a string original, caso o número fosse diferente, algum caracter repetido foi removido na conversão e então retorna False.
 - Espaços em brancos não devem ser considerados como caracteres válidos
 Verificação básica para ver se existe algum espaço em branco na string e caso sim, retornar False.
+
+### Lógica de Autenticação clientcrendentials
+
+![tokenservice](https://github.com/user-attachments/assets/c8fe7c73-2cb6-479a-8ff8-013911aac6d9)
+
+Para a autenticação clientcredentials utilizei uma função para criar um JWT e outra para validar a autenticidade do token
+
+#### create_access_token
+A função create_access_token recebe um dicionário com as informações que serão codificadas de acordo com o algoritmo de codificação definido no arquivo config.py e recebe um parâmetro opicional para definir a duração da validade do token.
+
+Após isso é criado uma cópia desses dados e é definido a data de expiração do Token, caso não tenha sido fornecido a expiração é definida como 15 minutos.
+
+Então a data é adicionada à cópia do dicionário e ele é codificado em um JWT utilizando a chave e o algoritmo especificado.
+
+#### verify_token
+A função verify_token recebe o token para ser verificado como uma string. Então decodifica utilizando a chave e o algoritmo especificado. Logo após ele extrai o client id esteja presente retorna o client_id para ser manipulado.
 
 ## Tecnologias e Ferramentas
 
@@ -140,6 +166,12 @@ Verificação básica para ver se existe algum espaço em branco na string e cas
 - Permitir o acesso ao endpoint de validação apenas para o client que possuir o token
 - Adicionar testes de integração
 - Adicionar um Middleware para Logs e Telemetria
-- Dockenização da API
+- Dockernização da API
 - CI/CD
 - Melhorar a validação clientcredentials
+- Tratamento de Erros
+- Melhorias na autenticação
+
+## Dificuldades
+
+A maior dificuldade se deu no entendimento e na execução da autenticação client_credentials cujo eu não tinha experiência e encontrei poucas informações de início. Foi algo bem trabalhoso e com certeza carece de diversas melhorias na implementação e na segurança dessa autenticação.
